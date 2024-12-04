@@ -3,6 +3,54 @@
 # 设置分割大小为 20MB (20*1024*1024 bytes)
 SPLIT_SIZE=20971520
 
+# 分支选择函数
+select_branch() {
+    echo "请选择执行方式："
+    echo "1) 在当前分支下执行"
+    echo "2) 基于main分支创建新分支"
+    read -p "请输入选项 (1/2): " choice
+
+    case $choice in
+        1)
+            echo "将在当前分支下执行..."
+            ;;
+        2)
+            read -p "请输入新分支名称: " new_branch
+            echo "正在基于main分支创建新分支: $new_branch"
+            
+            # 保存当前分支名
+            current_branch=$(git branch --show-current)
+            
+            # 检查是否有未提交的更改
+            if [[ -n $(git status -s) ]]; then
+                echo "检测到未提交的更改，请先提交或存储更改"
+                exit 1
+            fi
+            
+            # 切换到main分支
+            git checkout main || { echo "切换到main分支失败"; exit 1; }
+            
+            # 拉取最新代码
+            git pull origin main || { echo "拉取main分支最新代码失败"; exit 1; }
+            
+            # 创建并切换到新分支
+            git checkout -b "$new_branch" || { 
+                echo "创建新分支失败"
+                git checkout "$current_branch"
+                exit 1
+            }
+            echo "已切换到新分支: $new_branch"
+            ;;
+        *)
+            echo "无效的选项"
+            exit 1
+            ;;
+    esac
+}
+
+# 执行分支选择
+select_branch
+
 # 查找当前目录下的所有 .ipa 文件
 find . -maxdepth 1 -name "*.ipa" | while read ipa_file; do
     echo "处理文件: $ipa_file"
@@ -38,3 +86,9 @@ find . -maxdepth 1 -name "*.ipa" | while read ipa_file; do
         rm "Runner.ipa"
     fi
 done
+
+echo "处理完成！"
+if [[ $choice == 2 ]]; then
+    echo "注意：新文件已在分支 '$new_branch' 中生成"
+    echo "请记得提交更改并推送到远程仓库"
+fi
