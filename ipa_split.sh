@@ -23,22 +23,64 @@ select_branch() {
             
             # 检查是否有未提交的更改
             if [[ -n $(git status -s) ]]; then
-                echo "检测到未提交的更改，请先提交或存储更改"
-                exit 1
+                echo "检测到未提交的更改："
+                git status -s
+                
+                read -p "是否要将这些更改带到新分支？(y/n): " carry_changes
+                
+                if [[ $carry_changes == "y" ]]; then
+                    # 存储当前更改
+                    git stash || { echo "存储更改失败"; exit 1; }
+                    echo "已暂存当前更改"
+                    
+                    # 切换到main分支
+                    git checkout main || { 
+                        echo "切换到main分支失败"
+                        git stash pop
+                        exit 1
+                    }
+                    
+                    # 拉取最新代码
+                    git pull origin main || { 
+                        echo "拉取main分支最新代码失败"
+                        git checkout "$current_branch"
+                        git stash pop
+                        exit 1
+                    }
+                    
+                    # 创建并切换到新分支
+                    git checkout -b "$new_branch" || { 
+                        echo "创建新分支失败"
+                        git checkout "$current_branch"
+                        git stash pop
+                        exit 1
+                    }
+                    
+                    # 恢复存储的更改
+                    git stash pop || {
+                        echo "恢复更改失败"
+                        git checkout "$current_branch"
+                        exit 1
+                    }
+                    echo "已在新分支上恢复更改"
+                else
+                    echo "请先处理未提交的更改后再试"
+                    exit 1
+                fi
+            else
+                # 切换到main分支
+                git checkout main || { echo "切换到main分支失败"; exit 1; }
+                
+                # 拉取最新代码
+                git pull origin main || { echo "拉取main分支最新代码失败"; exit 1; }
+                
+                # 创建并切换到新分支
+                git checkout -b "$new_branch" || { 
+                    echo "创建新分支失败"
+                    git checkout "$current_branch"
+                    exit 1
+                }
             fi
-            
-            # 切换到main分支
-            git checkout main || { echo "切换到main分支失败"; exit 1; }
-            
-            # 拉取最新代码
-            git pull origin main || { echo "拉取main分支最新代码失败"; exit 1; }
-            
-            # 创建并切换到新分支
-            git checkout -b "$new_branch" || { 
-                echo "创建新分支失败"
-                git checkout "$current_branch"
-                exit 1
-            }
             echo "已切换到新分支: $new_branch"
             ;;
         *)
