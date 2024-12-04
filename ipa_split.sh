@@ -29,14 +29,9 @@ select_branch() {
                 read -p "是否要将这些更改带到新分支？(y/n): " carry_changes
                 
                 if [[ $carry_changes == "y" ]]; then
-                    # 存储当前更改
-                    git stash || { echo "存储更改失败"; exit 1; }
-                    echo "已暂存当前更改"
-                    
                     # 切换到main分支
                     git checkout main || { 
                         echo "切换到main分支失败"
-                        git stash pop
                         exit 1
                     }
                     
@@ -44,25 +39,27 @@ select_branch() {
                     git pull origin main || { 
                         echo "拉取main分支最新代码失败"
                         git checkout "$current_branch"
-                        git stash pop
                         exit 1
                     }
                     
-                    # 创建并切换到新分支
-                    git checkout -b "$new_branch" || { 
-                        echo "创建新分支失败"
-                        git checkout "$current_branch"
-                        git stash pop
-                        exit 1
-                    }
+                    # 检查新分支是否已存在
+                    if git show-ref --verify --quiet refs/heads/"$new_branch"; then
+                        echo "分支 $new_branch 已存在，切换到该分支"
+                        git checkout "$new_branch" || {
+                            echo "切换到分支 $new_branch 失败"
+                            git checkout "$current_branch"
+                            exit 1
+                        }
+                    else
+                        # 创建并切换到新分支
+                        git checkout -b "$new_branch" || { 
+                            echo "创建新分支失败"
+                            git checkout "$current_branch"
+                            exit 1
+                        }
+                    fi
                     
-                    # 恢复存储的更改
-                    git stash pop || {
-                        echo "恢复更改失败"
-                        git checkout "$current_branch"
-                        exit 1
-                    }
-                    echo "已在新分支上恢复更改"
+                    echo "已在新分支上继续更改"
                 else
                     echo "请先处理未提交的更改后再试"
                     exit 1
