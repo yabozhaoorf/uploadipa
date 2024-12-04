@@ -1,0 +1,54 @@
+name: Build and Distribute
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "选择要构建的分支"
+        required: true
+        default: "main"
+        type: string
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.branch || 'main' }}
+
+      - name: get and extract files
+        run: |
+          cat splitfile* > Runner.ipa.zip
+          unzip Runner.ipa.zip
+
+      - name: Archive IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-ipa
+          path: Runner.ipa
+
+      - name: Load configuration
+        id: config
+        run: |
+          # 读取配置文件并设置为输出变量
+          echo "APPLE_USERNAME=$(grep APPLE_USERNAME config.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          echo "APPLE_PASSWORD=$(grep APPLE_PASSWORD config.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+          echo "APPLE_ASC_PROVIDER=$(grep APPLE_ASC_PROVIDER config.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Upload using iTMSTransporter
+        env:
+          WORKING_DIRECTORY: .
+          IPA_FILE_NAME: Runner.ipa
+          APPLE_USERNAME: ${{ steps.config.outputs.APPLE_USERNAME }}
+          APPLE_PASSWORD: ${{ steps.config.outputs.APPLE_PASSWORD }}
+          APPLE_ASC_PROVIDER: ${{ steps.config.outputs.APPLE_ASC_PROVIDER }}
+
+        run: |
+          cd $WORKING_DIRECTORY
+          git clone https://github.com/ZhangLi1984/itsm.git
+          ./itsm/bin/iTMSTransporter -assetFile $IPA_FILE_NAME -u $APPLE_USERNAME -p $APPLE_PASSWORD -m upload -asc_provider $APPLE_ASC_PROVIDER
