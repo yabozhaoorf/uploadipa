@@ -1,6 +1,9 @@
 name: Build and Distribute
 
 on:
+  push:
+    branches-ignore:
+      - main
   workflow_dispatch:
 
 jobs:
