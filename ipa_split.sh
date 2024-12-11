@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 设置分割大小为 10MB (20*1024*1024 bytes)
-SPLIT_SIZE=10485760
+# 设置分割大小为 5MB (20*1024*1024 bytes)
+SPLIT_SIZE=5242880
 
 # 分支选择函数
 select_branch() {
@@ -128,7 +128,7 @@ if find . -maxdepth 1 -name "*.ipa" | read; then
             echo "文件已分割完成，生成的分片文件："
             ls -lh splitfile*
         else
-            echo "压缩包小于 20MB，无需分割"
+            echo "压缩包小于 5MB，无需分割"
             # 删除原始 ipa 文件
             rm "Runner.ipa"
         fi
