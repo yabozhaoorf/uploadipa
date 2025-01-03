@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 设置分割大小为 5MB (20*1024*1024 bytes)
-SPLIT_SIZE=5242880
+SPLIT_SIZE=20971520
 
 # 分支选择函数
 select_branch() {
