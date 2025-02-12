@@ -23,6 +23,7 @@ jobs:
         with:
           name: release-ipa
           path: Runner.ipa
+          retention-days: 1  # 设置工件保留 1 天，可根据需要调整
 
       - name: Load configuration
         id: config
