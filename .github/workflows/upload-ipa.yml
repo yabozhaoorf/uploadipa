@@ -65,6 +65,7 @@ jobs:
 
           git clone https://github.com/ZhangLi1984/itsm.git
           
+          
           # 组装上传命令
           CMD="./itsm/bin/iTMSTransporter -assetFile \"$IPA_FILE_NAME\" -apiKey \"$APPLE_KEY_ID\" -apiIssuer \"$APPLE_ISSUER_ID\" -m upload"
           
