@@ -6,12 +6,15 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: build
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: get and extract files
         run: |
@@ -29,9 +32,9 @@ jobs:
         id: config
         run: |
           # 读取配置文件并设置为输出变量
-          echo "APPLE_ISSUER_ID=$(grep APPLE_ISSUER_ID config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
-          echo "APPLE_KEY_ID=$(grep APPLE_KEY_ID config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
-          echo "APPLE_ASC_PROVIDER=$(grep APPLE_ASC_PROVIDER config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
+          echo "APPLE_ISSUER_ID=$(grep "^APPLE_ISSUER_ID=" config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
+          echo "APPLE_KEY_ID=$(grep "^APPLE_KEY_ID=" config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
+          echo "APPLE_ASC_PROVIDER=$(grep "^APPLE_ASC_PROVIDER=" config.properties | cut -d'=' -f2 | tr -d '\r')" >> $GITHUB_OUTPUT
 
       - name: Upload using iTMSTransporter
         env:
