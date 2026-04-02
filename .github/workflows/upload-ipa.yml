@@ -68,10 +68,5 @@ jobs:
           # 组装上传命令
           CMD="./itsm/bin/iTMSTransporter -assetFile \"$IPA_FILE_NAME\" -apiKey \"$APPLE_KEY_ID\" -apiIssuer \"$APPLE_ISSUER_ID\" -m upload"
           
-          # 只有在明确配置了 APPLE_ASC_PROVIDER 且不包含 'xxxx' 时才添加 -asc_provider 参数
-          if [ -n "$APPLE_ASC_PROVIDER" ] && [[ "$APPLE_ASC_PROVIDER" != *"xxxx"* ]]; then
-            CMD="$CMD -asc_provider \"$APPLE_ASC_PROVIDER\""
-          fi
-          
           echo "Running iTMSTransporter command..."
           eval $CMD
